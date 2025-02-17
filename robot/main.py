@@ -4,7 +4,7 @@ import pickle
 import struct
 import threading
 import time
-from .shared.shared_types import Frame
+from shared.shared_types import Frame
 import sys
 import os
 
