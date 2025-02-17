@@ -4,9 +4,9 @@ import pickle
 import struct
 import threading
 import time
-from shared.shared_types import Frame
 import sys
 import os
+from typing import Optional
 
 # Get the project root (one level up from base_station)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
