@@ -104,6 +104,7 @@ class CameraStreamer(threading.Thread):
 
     def run(self):
         """Main streaming loop"""
+        ThreadLogging.get_thread_info()
         if not self.setup_camera():
             return
 
@@ -143,9 +144,9 @@ def main():
         if camera_streamer.connect():
             print("Connected to base station")
             camera_streamer.start()
+            ThreadLogging.get_thread_info()
             
             while True:
-                ThreadLogging.get_thread_info()
                 time.sleep(0.1)
                 
     except KeyboardInterrupt:
