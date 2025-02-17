@@ -5,7 +5,15 @@ import cv2
 import threading
 import queue
 from typing import Optional
+import sys
+import os
+
+# Get the project root (one level up from base_station)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from shared.shared_types import Frame
+
+
 
 class FrameBuffer:
     """Thread-safe frame buffer with size limit"""
@@ -114,7 +122,7 @@ class VideoServer(threading.Thread):
             print(f"Error processing frame: {e}")
             return False
 
-    def draw_annotations(self, frame: Frame) -> Any:
+    def draw_annotations(self, frame: Frame) -> any:
         """Draw metadata and ML results on frame"""
         annotated_frame = frame.image.copy()
         
