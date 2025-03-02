@@ -1,6 +1,13 @@
 // Motor control pins
+
+// this can represent one motor, but will send this signal to all LEFT-side motors on robot
+// thus, these pins represent the LEFT wheels
 const int MOTOR_A_IN1 = 3;  // PWM pin
 const int MOTOR_A_IN2 = 9;  // PWM pin
+
+
+// this can represent one motor, but will send this signal to all RIGHT-side motors on robot
+// thus, these pins represent the RIGHT wheels
 const int MOTOR_B_IN1 = 10; // PWM pin
 const int MOTOR_B_IN2 = 11; // PWM pin
 
@@ -47,8 +54,31 @@ void executeCommand(char command) {
   }
 }
 
+
+// H-Bridge Motor Controller - Single Motor Control (HW 254 is our model that uses an h bridge)
+
+// - You provide high-level commands (direction and speed)
+// - The microcontroller converts these into just two binary outputs (IN1 and IN2)
+// - The H-bridge driver circuit takes these two signals and internally handles the activation of all four switches
+// - Each combination of these two signals creates a different current flow pattern through 
+//   the four switches of the H-bridge, determining how current flows through the motor
+//   or if it flows at all.
+// - The IN recieves PWM signals over pins from arduino
+// - Each HW 254 contains two motor control modules (thus IN1 IN2 for motor A, and IN3 IN4 for motor B)
+
+// IN1  IN2  |  Motor State
+// ---------------------
+// 1    0    |  FORWARD
+// 0    1    |  REVERSE
+// 1    1    |  BRAKE
+// 0    0    |  OFF (Coast)
+
+// 1 = HIGH/ON (3.3V or 5V), 0 = LOW/OFF (0V or ground)
+
+
 // Motor control functions
 void forward() {
+  // Motor A and B recieve a (1, 0) signal, which is a forward output
   analogWrite(MOTOR_A_IN1, DEFAULT_SPEED);
   analogWrite(MOTOR_A_IN2, 0);
   analogWrite(MOTOR_B_IN1, DEFAULT_SPEED);
