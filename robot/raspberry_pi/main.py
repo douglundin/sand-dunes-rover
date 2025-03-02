@@ -10,7 +10,6 @@ from BaseStation import BaseStation, BaseStationConfig
 from Camera import Camera, CameraConfig
 from Buffer import DoubleBuffer, DoubleBufferConfig 
 
-from shared.Communication import CameraFrame, LidarData, Communication
 
 
 
@@ -36,7 +35,8 @@ def main():
             while True: # main robot loop
                 frame = camera.buffer.read_frame() # get current frame from camera in thread safe way (because of buffer)
                 if frame:
-                    Communication.send(data=frame, connection=base_station)
+                    base_station.set_camera_frame(frame)
+                time.sleep(0.005) # throttling
                        
     except KeyboardInterrupt:
         print("Robot stopped by user")

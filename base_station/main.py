@@ -70,7 +70,7 @@ class BaseStation(threading.Thread):
         self._stop_event = threading.Event()
         
         # Data buffers for different message types
-        self.frame_buffer = DataBuffer(maxsize=90)
+        self.camera_buffer = DataBuffer(maxsize=90)
         self.lidar_buffer = DataBuffer(maxsize=30)
         self.telemetry_buffer = DataBuffer(maxsize=100)
         
@@ -96,7 +96,7 @@ class BaseStation(threading.Thread):
     def setup_server(self) -> bool:
         """Initialize server socket"""
         try:
-            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
             # Allow address reuse
             self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.server_socket.bind((self.host, self.port))
@@ -165,7 +165,7 @@ class BaseStation(threading.Thread):
             
             # Sort by message type
             if isinstance(message, CameraFrame):
-                self.frame_buffer.put(message)
+                self.camera_buffer.put(message)
                 self.stats["frames_received"] += 1
             elif isinstance(message, LidarData):
                 self.lidar_buffer.put(message)
@@ -191,7 +191,7 @@ class BaseStation(threading.Thread):
 
     def display_camera_feed(self, window_name: str = 'Robot Camera Feed') -> None:
         """Display camera frames with annotations"""
-        frame_obj = self.frame_buffer.get()
+        frame_obj = self.camera_buffer.get()
         if frame_obj is not None:
             # Get the image from the CameraFrame
             if hasattr(frame_obj, 'frame') and frame_obj.frame is not None:

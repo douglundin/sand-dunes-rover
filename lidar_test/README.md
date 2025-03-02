@@ -41,6 +41,19 @@ A method to verify data integrity:
 
 Think of CRC as a unique fingerprint for each data packet that can detect tampering or errors.
 
+#### What is a CRC and why is it needed?
+
+Imagine you have a LiDAR sensor mounted on a vehicle or drone. This sensor is constantly sending data about distances to objects around it. This data travels through cables or wireless connections to your computer.
+The problem is: data can get corrupted during transmission. Maybe there's electrical interference, a loose connection, or radio interference if it's wireless. When data gets corrupted, even a single bit changing from 0 to 1 could mean your system thinks an object is 100 meters away instead of 10 meters away - potentially dangerous!
+The purpose of CRC
+A Cyclic Redundancy Check (CRC) is like a special "fingerprint" or "checksum" calculated from your data. Here's how it works:
+
+The LiDAR sensor calculates a CRC value based on the data it's sending
+It sends both the data and the CRC value
+Your computer receives the data and independently calculates what the CRC should be
+If the calculated CRC matches the received CRC, the data is probably intact
+If they don't match, the data was corrupted during transmission, and you can request it again
+
 ### Packet Structure and Protocol
 
 How data is organized when transmitted from the LIDAR:
@@ -60,6 +73,36 @@ How multi-byte numbers are stored in the data:
 - Example: The value 1234 (decimal) would be stored as [210, 4]
 
 When reading values from the packet, the byte order must be considered.
+
+#### How multi-byte numbers are stored in the data:
+
+In the LIDAR packet format, multi-byte values are stored in little-endian byte order, which means:
+
+#### Why this matters:
+
+Each byte position in a multi-byte number has a specific value:
+
+- Position 0 (first byte): Values multiplied by 1
+- Position 1 (second byte): Values multiplied by 256
+- Position 2 (third byte): Values multiplied by 65,536 (256²)
+
+#### Example:
+
+The decimal value 1234 would be stored as the bytes [210, 4] because:
+
+1. Divide 1234 by 256 (one byte, or 2^8 bits): 1234 ÷ 256 = 4 remainder 210
+2. First byte (remainder): 210
+3. Second byte (quotient): 4
+
+To read this value correctly:
+
+- First byte × 1: 210 × 1 = 210
+- Second byte × 256: 4 × 256 = 1,024
+- Total: 210 + 1,024 = 1,234
+
+Reading the bytes in the wrong order would give you 53,764 instead of 1,234, causing incorrect LIDAR measurements.
+
+When parsing values from the LIDAR packet, always remember to respect the little-endian byte order to ensure accurate readings.
 
 ### Angle Interpolation
 

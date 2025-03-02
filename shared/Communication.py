@@ -8,9 +8,9 @@ import numpy as np
 import pickle
 
 class MessageType(Enum):
-    CAMERA_FRAME = 1
-    LIDAR_DATA = 2
-    TELEMETRY = 3 # robot status and metrics
+    CAMERA = 1
+    LIDAR = 2
+    STATUS = 3 # robot status and metrics
     COMMAND = 4
 
 @dataclass
@@ -35,7 +35,7 @@ class CameraFrame(Message):
     metadata: Dict[str, Any] = field(default_factory=dict)  # Frame-specific metadata
     
     def __post_init__(self):
-        self.message_type = MessageType.CAMERA_FRAME
+        self.message_type = MessageType.CAMERA
     
     def serialize(self) -> bytes:
         """Serialize with frame compression using OpenCV"""
@@ -91,7 +91,14 @@ class LidarData(Message):
     readings: Dict[str, float] = field(default_factory=dict)
     
     def __post_init__(self):
-        self.message_type = MessageType.LIDAR_DATA
+        self.message_type = MessageType.LIDAR
+
+@dataclass
+class StatusData(Message):
+    status: Dict[str, Any] = field(default_factory=dict)  # robot status-specific metadata
+
+    def __post_init__(self):
+        self.message_type = MessageType.STATUS
 
 # Simple transport mechanism
 class Communication:
@@ -116,7 +123,7 @@ class Communication:
             msg_type = msg.message_type
         
         # Deserialize based on type
-        if msg_type == MessageType.CAMERA_FRAME:
+        if msg_type == MessageType.CAMERA:
             return CameraFrame.deserialize(data)
         elif msg_type == MessageType.LIDAR_DATA:
             return LidarData.deserialize(data)

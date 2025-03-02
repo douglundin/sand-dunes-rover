@@ -2,11 +2,10 @@ import socket
 import threading
 from dataclasses import dataclass
 import time
-from shared import Communication
+from shared.Communication import Communication, LidarData, CameraFrame, StatusData
 from typing import Dict, Any
 import numpy as np
 
-# BaseStation config and class
 @dataclass
 class BaseStationConfig:
     base_host: str = '127.0.0.1'
@@ -46,17 +45,17 @@ class BaseStation(threading.Thread):
             print(f"Connection failed: {e}")
             return False
     
-    def set_camera_frame(self, frame: np.ndarray) -> None:
+    def set_camera_frame(self, frame: CameraFrame) -> None:
         """Update the camera frame to be sent"""
-        self.camera_frame = Communication.CameraFrame(frame=frame)
+        self.camera_frame = CameraFrame(frame=frame)
     
     def set_sensor_data(self, readings: Dict[str, float]) -> None:
         """Update the sensor data to be sent"""
-        self.sensor_data = Communication.SensorData(readings=readings)
+        self.sensor_data = LidarData(readings=readings)
     
     def set_status(self, status: Dict[str, Any]) -> None:
         """Update the robot status to be sent"""
-        self.status_data = Communication.StatusData(status=status)
+        self.status_data = StatusData(status=status)
     
     def run(self):
         """Main thread function"""
@@ -66,9 +65,9 @@ class BaseStation(threading.Thread):
             
             while not self.stopped():
                 current_time = time.time()
-                
+                elapsed_time = current_time - self.last_send_time
                 # Rate limiting
-                if current_time - self.last_send_time < self.send_interval:
+                if elapsed_time < self.send_interval:
                     time.sleep(0.01)  # Small sleep to prevent CPU spinning
                     continue
                 
