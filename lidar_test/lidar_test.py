@@ -54,6 +54,6 @@ try:
         points = read_lidar_data()
         print(f"Got {len(points)} points")
         for angle, distance, intensity, x, y in points:
-            print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}")
+            print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}, x:{x}, y: {y}")
 finally:
     ser.close()
