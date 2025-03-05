@@ -4,7 +4,7 @@ import math
 
 # Open serial connection (replace with your port)
 ser = serial.Serial(
-    port='/dev/ttyUSB0',  # or 'COM4' on Windows
+    port='/dev/tty.usbserial-0001',  # or 'COM4' on Windows
     baudrate=230400,
     timeout=1
 )

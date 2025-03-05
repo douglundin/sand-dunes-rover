@@ -7,11 +7,14 @@ import time
 from matplotlib.animation import FuncAnimation
 from collections import deque
 
+#config
+usb_port = '/dev/tty.usbserial-0001'
+
 # Open serial connection (replace with your port)
-def initialize_serial(port='/dev/ttyUSB0', baudrate=230400):
+def initialize_serial(port=usb_port, baudrate=230400):
     try:
         ser = serial.Serial(
-            port=port,  # or 'COM4' on Windows
+            port=port,
             baudrate=baudrate,
             timeout=1
         )
@@ -55,14 +58,15 @@ def read_lidar_data(ser):
         
         # Convert polar coordinates to Cartesian (x,y)
         if distance > 0:
-            angle_rad = math.radians(angle)
+            adjusted_angle = angle - 90 # adjust angle so that y axis is the 0 degree point, to help with visualize orientation easier
+            angle_rad = math.radians(adjusted_angle)
             x = distance * math.cos(angle_rad)
             y = distance * math.sin(angle_rad)
             points.append((angle, distance, intensity, x, y))
     
     return points
 
-def take_snapshot(num_frames=10, port='/dev/ttyUSB0'):
+def take_snapshot(num_frames=100, port=usb_port):
     """Collect several frames of LiDAR data and display them as a static snapshot"""
     ser = initialize_serial(port)
     if not ser:
@@ -106,7 +110,7 @@ def take_snapshot(num_frames=10, port='/dev/ttyUSB0'):
     
     plt.show()
 
-def continuous_view(max_frames=100, port='/dev/ttyUSB0'):
+def continuous_view(max_frames=100, port=usb_port):
     """Display LiDAR data in a continuously updating view"""
     ser = initialize_serial(port)
     if not ser:
@@ -116,8 +120,8 @@ def continuous_view(max_frames=100, port='/dev/ttyUSB0'):
     fig, ax = plt.subplots(figsize=(10, 10))
     
     # Use deques to store a fixed number of points
-    x_history = deque(maxlen=max_frames * 32)  # Assuming max 32 points per frame
-    y_history = deque(maxlen=max_frames * 32)
+    x_history = deque(maxlen=max_frames * 2)  # Assuming max 32 points per frame
+    y_history = deque(maxlen=max_frames * 2)
     
     # Initial scatter plot
     scatter = ax.scatter([], [], s=10, alpha=0.5)
@@ -176,8 +180,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='LiDAR Visualization Tool')
-    parser.add_argument('--port', type=str, default='/dev/ttyUSB0', help='Serial port for LiDAR')
-    parser.add_argument('--mode', type=str, choices=['snapshot', 'continuous'], default='snapshot',
+    parser.add_argument('--port', type=str, default=usb_port, help='Serial port for LiDAR')
+    parser.add_argument('--mode', type=str, choices=['snapshot', 'continuous'], default='continuous',
                         help='Visualization mode: snapshot or continuous')
     parser.add_argument('--frames', type=int, default=10, help='Number of frames to capture for snapshot mode')
     
