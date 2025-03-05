@@ -45,7 +45,7 @@ def read_lidar_data():
     
     # Process each measurement point
     points = []
-    if point_count is 1: # avoid divide by zero error
+    if point_count == 1: # avoid divide by zero error
         return points
     for i in range(point_count):
         offset = 4 + i*3
@@ -70,7 +70,7 @@ try:
       points = read_lidar_data()
       print(f"Got {len(points)} points")
       for angle, distance, intensity, x, y in points:
-          print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}\nx:{x:.1f}mm, y: {y:.1f}mm\n\n\n")
-      time.sleep(2)
+          print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}\nx:{x:.1f}mm, y: {y:.1f}mm\n\n")
+      time.sleep(0.5)
 finally:
     ser.close()
