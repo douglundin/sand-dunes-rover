@@ -1,7 +1,10 @@
 import serial
 import time
 
-# Configure the serial port
+
+# Pi connects to arduino controller via usb port
+
+# Configuring the serial port
 # '/dev/ttyACM0' is the port on the rasp pi 4 when connecting arduino uno r3 usb port
 ser = serial.Serial(
     port='/dev/ttyACM0',

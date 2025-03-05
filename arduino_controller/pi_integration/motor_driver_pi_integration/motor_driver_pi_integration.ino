@@ -1,15 +1,42 @@
 // Motor control pins
 
-// this can represent one motor, but will send this signal to all LEFT-side motors on robot
-// thus, these pins represent the LEFT wheels
-const int MOTOR_A_IN1 = 3;  // PWM pin
-const int MOTOR_A_IN2 = 9;  // PWM pin
+/** availabel arduino r3 pwm pins(six total): 3 5 6 9 10 11
+
+/**
+ * birds eye view Six-wheel Schematic Layout
+ *  [front of robot]
+ * +-----+    +-----+
+ * |     |    |     |
+ * |  L1 |    |  R1 |
+ * |     |    |     |
+ * +-----+    +-----+
+ * 
+ * +-----+    +-----+
+ * |     |    |     |
+ * |  L2 |    |  R2 |
+ * |     |    |     |
+ * +-----+    +-----+
+ * 
+ * +-----+    +-----+
+ * |     |    |     |
+ * |  L3 |    |  R3 |
+ * |     |    |     |
+ * +-----+    +-----+
+ * 
+ * Legend:
+ * L1-L3: Left wheels (top to bottom)
+ * R1-R3: Right wheels (top to bottom)
+ */
 
 
-// this can represent one motor, but will send this signal to all RIGHT-side motors on robot
-// thus, these pins represent the RIGHT wheels
-const int MOTOR_B_IN1 = 10; // PWM pin
-const int MOTOR_B_IN2 = 11; // PWM pin
+// IMPORTANT: need servos connected to system, until then, will implement skid steering
+// all left wheels L1-L3 will be assigned L, and R1 - R3 will be R
+
+const int MOTOR_L_IN1 = 5;  // PWM pin
+const int MOTOR_L_IN2 = 6;  // PWM pin
+
+const int MOTOR_R_IN1 = 9; // PWM pin
+const int MOTOR_R_IN2 = 10; // PWM pin
 
 // Speed settings (0-255)
 const int DEFAULT_SPEED = 80;
@@ -20,10 +47,10 @@ void setup() {
   Serial.begin(9600);
   
   // Set up motor control pins
-  pinMode(MOTOR_A_IN1, OUTPUT);
-  pinMode(MOTOR_A_IN2, OUTPUT);
-  pinMode(MOTOR_B_IN1, OUTPUT);
-  pinMode(MOTOR_B_IN2, OUTPUT);
+  pinMode(MOTOR_L_IN1, OUTPUT);
+  pinMode(MOTOR_L_IN2, OUTPUT);
+  pinMode(MOTOR_R_IN1, OUTPUT);
+  pinMode(MOTOR_R_IN2, OUTPUT);
   
   // Initially stop motors
   stopMotors();
@@ -68,8 +95,8 @@ void executeCommand(char command) {
 
 // IN1  IN2  |  Motor State
 // ---------------------
-// 1    0    |  FORWARD
-// 0    1    |  REVERSE
+// 1    0    |  FORWARD (may be reversed, it's based of current direction, will always spin opposite of REVERSE)
+// 0    1    |  REVERSE (may be reversed, it's based of current direction, will always spin opposite of FORWARD)
 // 1    1    |  BRAKE
 // 0    0    |  OFF (Coast)
 
@@ -77,45 +104,69 @@ void executeCommand(char command) {
 
 
 // Motor control functions
+
 void forward() {
-  // Motor A and B recieve a (1, 0) signal, which is a forward output
-  analogWrite(MOTOR_A_IN1, DEFAULT_SPEED);
-  analogWrite(MOTOR_A_IN2, 0);
-  analogWrite(MOTOR_B_IN1, DEFAULT_SPEED);
-  analogWrite(MOTOR_B_IN2, 0);
+  // Motors recieve a (IN1=1, IN2=0) signal, which is a FORWARD output as per above comments
+
+  // Right motors go FORWARD
+  analogWrite(MOTOR_R_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_R_IN2, 0);
+
+  // Left Motors go FORWARD
+  analogWrite(MOTOR_L_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_L_IN2, 0);
 }
 
 void backward() {
-  analogWrite(MOTOR_A_IN1, 0);
-  analogWrite(MOTOR_A_IN2, DEFAULT_SPEED);
-  analogWrite(MOTOR_B_IN1, 0);
-  analogWrite(MOTOR_B_IN2, DEFAULT_SPEED);
+  // Motors recieve a (IN1=0, IN2=1) signal, which is a FORWARD output as per above comments
+
+  // Right motors go REVERSE
+  analogWrite(MOTOR_R_IN1, 0);
+  analogWrite(MOTOR_R_IN2, DEFAULT_SPEED);
+
+  // Left Motors go REVERSE
+  analogWrite(MOTOR_L_IN1, 0);
+  analogWrite(MOTOR_L_IN2, DEFAULT_SPEED);
 }
 
+
+// right and left will be redefined when servos get integrated
+
 void left() {
-  analogWrite(MOTOR_A_IN1, 0);
-  analogWrite(MOTOR_A_IN2, TURN_SPEED);
-  analogWrite(MOTOR_B_IN1, TURN_SPEED);
-  analogWrite(MOTOR_B_IN2, 0);
+  // Right motors go REVERSE
+  analogWrite(MOTOR_R_IN1, 0);
+  analogWrite(MOTOR_R_IN2, DEFAULT_SPEED);
+
+  // Left Motors go FORWARD
+  analogWrite(MOTOR_L_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_L_IN2, 0);
 }
 
 void right() {
-  analogWrite(MOTOR_A_IN1, TURN_SPEED);
-  analogWrite(MOTOR_A_IN2, 0);
-  analogWrite(MOTOR_B_IN1, 0);
-  analogWrite(MOTOR_B_IN2, TURN_SPEED);
+  // Right motors go FORWARD
+  analogWrite(MOTOR_R_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_R_IN2, 0);
+
+  // Left Motors go REVERSE
+  analogWrite(MOTOR_L_IN1, 0);
+  analogWrite(MOTOR_L_IN2, DEFAULT_SPEED);
 }
 
 void stopMotors() {
-  analogWrite(MOTOR_A_IN1, 0);
-  analogWrite(MOTOR_A_IN2, 0);
-  analogWrite(MOTOR_B_IN1, 0);
-  analogWrite(MOTOR_B_IN2, 0);
+   // Right motors go OFF
+  analogWrite(MOTOR_R_IN1, 0);
+  analogWrite(MOTOR_R_IN2, 0);
+
+  // Left Motors go OFF
+  analogWrite(MOTOR_L_IN1, 0);
+  analogWrite(MOTOR_L_IN2, 0);
 }
 
 void brakeMotors() {
-  analogWrite(MOTOR_A_IN1, DEFAULT_SPEED);
-  analogWrite(MOTOR_A_IN2, DEFAULT_SPEED);
-  analogWrite(MOTOR_B_IN1, DEFAULT_SPEED);
-  analogWrite(MOTOR_B_IN2, DEFAULT_SPEED);
+  // Right Motors go BRAKE
+  analogWrite(MOTOR_R_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_R_IN2, DEFAULT_SPEED);
+  // Left Motors go BRAKE
+  analogWrite(MOTOR_L_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_L_IN2, DEFAULT_SPEED);
 }
