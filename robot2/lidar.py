@@ -12,13 +12,16 @@ ser = serial.Serial(
 
 # FieldSize (Bytes)Description
 # Header        1 Byte     Always 0x54 (start of packet)
-# VerLen        1 Byte     Upper 3 bits: Packet type Lower 5 bits: Point count
+# VerLen        1 Byte     Upper 3 bits: Packet type Lower 5 bits: number of Points in packet
 # Speed         2 Bytes    Rotation speed (degrees/sec)
 # Start Angle   2 Bytes    Start angle (0.01° increments)
 # Data Points   3 * N Bytes Each point: Distance (2 Bytes) + Intensity (1 Byte)
 # End Angle     2 Bytes    End angle (0.01° increments)
 # Timestamp     2 Bytes    Timestamp (ms)
 # CRC Check     1 Byte     Packet validation
+
+
+# the read function will filter out points outside a certain angle range, which equates to robots field of vision in the front
 
 def read_lidar_data():
     # Loop and Wait until we read a packet header (0x54)
@@ -42,6 +45,8 @@ def read_lidar_data():
     
     # Process each measurement point
     points = []
+    if point_count is 1: # avoid divide by zero error
+        return points
     for i in range(point_count):
         offset = 4 + i*3
         distance = struct.unpack('<H', data[offset:offset+2])[0]  # in mm
@@ -51,21 +56,21 @@ def read_lidar_data():
         angle = start_angle + (end_angle - start_angle) * (i / (point_count-1))
         
         # Convert polar coordinates to Cartesian (x,y) in mm
-        if distance > 0:
+        if distance > 0 and distance < 500: # filter distance less than 500mm
             angle_rad = math.radians(angle)
-            x = distance * math.cos(angle_rad)
-            y = distance * math.sin(angle_rad)
-            points.append((angle, distance, intensity, x, y))
+            if angle > 300 or angle < 60: # filter out all angles but a 120degree slice in front of sensor
+                x = distance * math.cos(angle_rad)
+                y = distance * math.sin(angle_rad)
+                points.append((angle, distance, intensity, x, y))
     
     return points # [ (angle,  distance, intensity, x, y), (angle,  distance, intensity, x, y), ...]
 
-# Read and print 10 sets of measurements
 try:
     while True:
       points = read_lidar_data()
       print(f"Got {len(points)} points")
       for angle, distance, intensity, x, y in points:
-          print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}\nx:{x:.1f}mm, y: {y:1f}mm\n\n\n")
+          print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}\nx:{x:.1f}mm, y: {y:.1f}mm\n\n\n")
       time.sleep(2)
 finally:
     ser.close()
