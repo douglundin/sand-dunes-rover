@@ -50,7 +50,7 @@ def read_lidar_data():
         # Calculate angle for this point using linear interpolation
         angle = start_angle + (end_angle - start_angle) * (i / (point_count-1))
         
-        # Convert polar coordinates to Cartesian (x,y)
+        # Convert polar coordinates to Cartesian (x,y) in mm
         if distance > 0:
             angle_rad = math.radians(angle)
             x = distance * math.cos(angle_rad)
@@ -65,7 +65,7 @@ try:
       points = read_lidar_data()
       print(f"Got {len(points)} points")
       for angle, distance, intensity, x, y in points:
-          print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}, x:{x}, y: {y}")
+          print(f"  Angle: {angle:.2f}°, Distance: {distance}mm, Intensity: {intensity}\nx:{x}mm, y: {y}mm\n\n\n")
       time.sleep(2)
 finally:
     ser.close()
