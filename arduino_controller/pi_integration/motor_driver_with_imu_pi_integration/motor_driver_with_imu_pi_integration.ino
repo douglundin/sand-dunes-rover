@@ -21,32 +21,38 @@
  * Legend: L1-L3: Left wheels, R1-R3: Right wheels
  * Note: Using skid steering (all left wheels as one group, all right as another)
  * Available PWM pins on Arduino R3: 3, 5, 6, 9, 10, 11
+ *
+ * Uses non-blocking timing instead of delay() to ensure commands are processed promptly
  */
 
-#include <Wire.h>  // Library for I2C communication with MPU6050
+#include <Wire.h> // Library for I2C communication with MPU6050
 
 // Motor control pins (using PWM-capable pins)
-const int MOTOR_L_IN1 = 5;   // Left motors forward
-const int MOTOR_L_IN2 = 6;   // Left motors reverse
-const int MOTOR_R_IN1 = 9;   // Right motors forward
-const int MOTOR_R_IN2 = 10;  // Right motors reverse
+const int MOTOR_L_IN1 = 5;  // Left motors forward
+const int MOTOR_L_IN2 = 6;  // Left motors reverse
+const int MOTOR_R_IN1 = 9;  // Right motors forward
+const int MOTOR_R_IN2 = 10; // Right motors reverse
 
 // Speed settings (0-255 for PWM)
-const int DEFAULT_SPEED = 160;  // Normal driving speed
-const int TURN_SPEED = 80;      // Reduced speed for turning (not currently used separately)
+const int DEFAULT_SPEED = 160; // Normal driving speed
+const int TURN_SPEED = 80;     // Reduced speed for turning
 
-// MPU6050 I2C address (default 0x68, use 0x69 if AD0 pin is high)
+// MPU6050 I2C address
 const int MPU_ADDR = 0x68;
 
-// Sensor variables (16-bit integers for raw MPU6050 data)
-int16_t accelerometer_x, accelerometer_y, accelerometer_z;  // Acceleration in 3 axes
-int16_t gyro_x, gyro_y, gyro_z;                            // Angular velocity in 3 axes
-int16_t temperature;                                       // Raw temperature reading
+// Sensor variables
+int16_t accelerometer_x, accelerometer_y, accelerometer_z;
+int16_t gyro_x, gyro_y, gyro_z;
+int16_t temperature;
 
-void setup() {
-  Serial.begin(9600);  // Start serial communication at 9600 baud for USB transmission
-  
-  // Initialize I2C for MPU6050 communication
+// Timing variables for non-blocking operation
+unsigned long previousMillis = 0;
+const long sensorInterval = 1000; // Interval for sensor readings (1 second)
+
+void setup()
+{
+  Serial.begin(9600);
+
   Wire.begin();
 
   // Configure motor control pins as outputs
@@ -57,135 +63,141 @@ void setup() {
 
   // Wake up MPU6050 from sleep mode
   Wire.beginTransmission(MPU_ADDR);
-  Wire.write(0x6B);  // Power management register
-  Wire.write(0);     // Set to 0 to wake up
+  Wire.write(0x6B); // Power management register
+  Wire.write(0);    // Set to 0 to wake up
   Wire.endTransmission(true);
 
-  stopMotors();  // Ensure motors start in stopped state
-  
-  // Initial status messages
+  stopMotors();
+
   Serial.println("Arduino ready to receive UART commands");
   Serial.println("MPU6050 Initialized");
   Serial.println("Sending data format: ax,ay,az,gx,gy,gz,temp");
 }
 
-void loop() {
+void loop()
+{
   // Check for incoming UART commands to control motors
-  if (Serial.available() > 0) {
-    char command = Serial.read();  // Read single character command
-    executeCommand(command);       // Execute the corresponding motor action
+  if (Serial.available() > 0)
+  {
+    char command = Serial.read();
+    executeCommand(command);
     Serial.print("Command executed: ");
     Serial.println(command);
   }
 
-  // Read MPU6050 sensor data
-  Wire.beginTransmission(MPU_ADDR);
-  Wire.write(0x3B);  // Start at ACCEL_XOUT_H register
-  Wire.endTransmission(false);
-  
-  // Request 14 bytes (7 registers × 2 bytes each)
-  Wire.requestFrom(MPU_ADDR, 14, true);
+  // Non-blocking sensor reading based on time interval
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= sensorInterval)
+  {
+    previousMillis = currentMillis; // Save the last time we read the sensor
 
-  /* Read sensor data using bitwise operations:
-   * - Each value is 16-bit, sent as two 8-bit bytes
-   * - << 8 shifts high byte left, | combines with low byte
-   */
-  accelerometer_x = Wire.read() << 8 | Wire.read();  // X-axis acceleration
-  accelerometer_y = Wire.read() << 8 | Wire.read();  // Y-axis acceleration
-  accelerometer_z = Wire.read() << 8 | Wire.read();  // Z-axis acceleration
-  temperature = Wire.read() << 8 | Wire.read();      // Temperature
-  gyro_x = Wire.read() << 8 | Wire.read();          // X-axis rotation
-  gyro_y = Wire.read() << 8 | Wire.read();          // Y-axis rotation
-  gyro_z = Wire.read() << 8 | Wire.read();          // Z-axis rotation
+    // Read MPU6050 sensor data
+    readMPU6050Data();
 
-  // Convert raw temperature to Celsius using MPU6050 formula
-  float temp_celsius = temperature / 340.0 + 36.53;
+    // Convert raw temperature to Celsius
+    float temp_celsius = temperature / 340.0 + 36.53;
 
-  // Create a comma-separated string for transmission
-  String data = String(accelerometer_x) + "," +
-                String(accelerometer_y) + "," +
-                String(accelerometer_z) + "," +
-                String(gyro_x) + "," +
-                String(gyro_y) + "," +
-                String(gyro_z) + "," +
-                String(temp_celsius, 2);  // 2 decimal places for temperature
+    // Create a comma-separated string for transmission
+    String data = String(accelerometer_x) + "," +
+                  String(accelerometer_y) + "," +
+                  String(accelerometer_z) + "," +
+                  String(gyro_x) + "," +
+                  String(gyro_y) + "," +
+                  String(gyro_z) + "," +
+                  String(temp_celsius, 2);
 
-  // Send data over serial (USB) to Raspberry Pi
-  Serial.println(data);
-
-  delay(1000);  // Update and transmit every second
-}
-
-/* Motor Command Execution
- * Accepts single-character commands via UART:
- * 'f' - forward, 'b' - backward, 'l' - left, 'r' - right
- * 's' - stop, 't' - brake
- */
-void executeCommand(char command) {
-  switch (command) {
-    case 'f': forward(); break;
-    case 'b': backward(); break;
-    case 'l': left(); break;
-    case 'r': right(); break;
-    case 's': stopMotors(); break;
-    case 't': brakeMotors(); break;
-    default: break;  // Ignore unknown commands
+    // Send data over serial
+    Serial.println(data);
   }
 }
 
-/* H-Bridge Motor Control Logic (e.g., HW-254 model)
- * IN1  IN2  |  Motor State
- * ---------------------
- * 1    0    |  FORWARD
- * 0    1    |  REVERSE
- * 1    1    |  BRAKE
- * 0    0    |  OFF (Coast)
- * 1 = HIGH (PWM value), 0 = LOW (0)
- */
+void readMPU6050Data()
+{
+  Wire.beginTransmission(MPU_ADDR);
+  Wire.write(0x3B); // Start at ACCEL_XOUT_H register
+  Wire.endTransmission(false);
+
+  Wire.requestFrom(MPU_ADDR, 14, true);
+
+  accelerometer_x = Wire.read() << 8 | Wire.read();
+  accelerometer_y = Wire.read() << 8 | Wire.read();
+  accelerometer_z = Wire.read() << 8 | Wire.read();
+  temperature = Wire.read() << 8 | Wire.read();
+  gyro_x = Wire.read() << 8 | Wire.read();
+  gyro_y = Wire.read() << 8 | Wire.read();
+  gyro_z = Wire.read() << 8 | Wire.read();
+}
+
+void executeCommand(char command)
+{
+  switch (command)
+  {
+  case 'f':
+    forward();
+    break;
+  case 'b':
+    backward();
+    break;
+  case 'l':
+    left();
+    break;
+  case 'r':
+    right();
+    break;
+  case 's':
+    stopMotors();
+    break;
+  case 't':
+    brakeMotors();
+    break;
+  default:
+    break;
+  }
+}
 
 // Motor control functions
-void forward() {
-  // All motors forward at default speed
+void forward()
+{
   analogWrite(MOTOR_R_IN1, DEFAULT_SPEED);
   analogWrite(MOTOR_R_IN2, 0);
   analogWrite(MOTOR_L_IN1, DEFAULT_SPEED);
   analogWrite(MOTOR_L_IN2, 0);
 }
 
-void backward() {
-  // All motors reverse at default speed
+void backward()
+{
   analogWrite(MOTOR_R_IN1, 0);
   analogWrite(MOTOR_R_IN2, DEFAULT_SPEED);
   analogWrite(MOTOR_L_IN1, 0);
   analogWrite(MOTOR_L_IN2, DEFAULT_SPEED);
 }
 
-void left() {
-  // Right motors forward, left motors reverse (skid turn)
+void left()
+{
   analogWrite(MOTOR_R_IN1, DEFAULT_SPEED);
   analogWrite(MOTOR_R_IN2, 0);
   analogWrite(MOTOR_L_IN1, 0);
   analogWrite(MOTOR_L_IN2, DEFAULT_SPEED);
 }
 
-void right() {
-  // Left motors forward, right motors reverse (skid turn)
+void right()
+{
   analogWrite(MOTOR_R_IN1, 0);
   analogWrite(MOTOR_R_IN2, DEFAULT_SPEED);
   analogWrite(MOTOR_L_IN1, DEFAULT_SPEED);
   analogWrite(MOTOR_L_IN2, 0);
 }
 
-void stopMotors() {
-  // All motors off (coast to stop)
+void stopMotors()
+{
   analogWrite(MOTOR_R_IN1, 0);
   analogWrite(MOTOR_R_IN2, 0);
   analogWrite(MOTOR_L_IN1, 0);
   analogWrite(MOTOR_L_IN2, 0);
 }
 
-void brakeMotors() {
-  // All motors brake (active stop)
+void brakeMotors()
+{
   analogWrite(MOTOR_R_IN1, DEFAULT_SPEED);
   analogWrite(MOTOR_R_IN2, DEFAULT_SPEED);
   analogWrite(MOTOR_L_IN1, DEFAULT_SPEED);
