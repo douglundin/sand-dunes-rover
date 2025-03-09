@@ -1,4 +1,4 @@
-import smbus
+import smbus # smbus-cffi is the package install name
 import time
 
 # MPU-6050 Registers
