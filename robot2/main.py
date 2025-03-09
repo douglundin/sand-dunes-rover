@@ -76,11 +76,11 @@ try:
     
     while True:
         # Check for incoming sensor data
-        if ser.in_waiting > 0:
-            data = ser.readline().decode('utf-8').strip()  # Read a line and decode
-            if data:  # Ensure we got actual data
-                sensor_data = parse_sensor_data(data)
-                display_sensor_data(sensor_data)
+        # if ser.in_waiting > 0:
+        #     data = ser.readline().decode('utf-8').strip()  # Read a line and decode
+        #     if data:  # Ensure we got actual data
+        #         sensor_data = parse_sensor_data(data)
+        #         display_sensor_data(sensor_data)
         
         # Handle user input for motor commands
         cmd = input("\nEnter command: ").lower()
