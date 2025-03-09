@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "description": "Data structures for communication between Arduino robot controller and Raspberry Pi via USB serial",
+  "communication": {
+    "baud_rate": 9600,
+    "port": "/dev/ttyACM0",
+    "encoding": "utf-8",
+    "timeout": 1
+  },
+  "command_structure": {
+    "description": "Single-character commands sent from Raspberry Pi to Arduino to control motor actions",
+    "transmission_format": "Single ASCII character followed by newline (\\n)",
+    "commands": [
+      {
+        "key": "f",
+        "description": "Move robot forward",
+        "example": "f\\n"
+      },
+      {
+        "key": "b",
+        "description": "Move robot backward",
+        "example": "b\\n"
+      },
+      {
+        "key": "l",
+        "description": "Turn robot left (skid steering: right motors forward, left motors reverse)",
+        "example": "l\\n"
+      },
+      {
+        "key": "r",
+        "description": "Turn robot right (skid steering: left motors forward, right motors reverse)",
+        "example": "r\\n"
+      },
+      {
+        "key": "s",
+        "description": "Stop all motors (coast to stop)",
+        "example": "s\\n"
+      },
+      {
+        "key": "t",
+        "description": "Brake all motors (active stop)",
+        "example": "t\\n"
+      }
+    ]
+  },
+  "sensor_data_structure": {
+    "description": "MPU6050 sensor data transmitted from Arduino to Raspberry Pi",
+    "transmission_format": "Comma-separated values (CSV) terminated by newline: accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,temp\\n",
+    "example": "123,-456,789,101,-202,303,25.50\\n",
+    "fields": [
+      {
+        "name": "accel_x",
+        "type": "int16",
+        "description": "Accelerometer X-axis reading (raw value)",
+        "range": "-32768 to 32767"
+      },
+      {
+        "name": "accel_y",
+        "type": "int16",
+        "description": "Accelerometer Y-axis reading (raw value)",
+        "range": "-32768 to 32767"
+      },
+      {
+        "name": "accel_z",
+        "type": "int16",
+        "description": "Accelerometer Z-axis reading (raw value)",
+        "range": "-32768 to 32767"
+      },
+      {
+        "name": "gyro_x",
+        "type": "int16",
+        "description": "Gyroscope X-axis reading (raw value)",
+        "range": "-32768 to 32767"
+      },
+      {
+        "name": "gyro_y",
+        "type": "int16",
+        "description": "Gyroscope Y-axis reading (raw value)",
+        "range": "-32768 to 32767"
+      },
+      {
+        "name": "gyro_z",
+        "type": "int16",
+        "description": "Gyroscope Z-axis reading (raw value)",
+        "range": "-32768 to 32767"
+      },
+      {
+        "name": "temp",
+        "type": "float",
+        "description": "Temperature in Celsius, derived from raw MPU6050 temperature (raw/340 + 36.53)",
+        "range": "Approx. -40 to 85",
+        "precision": "2 decimal places"
+      }
+    ]
+  }
+}
