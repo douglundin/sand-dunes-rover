@@ -39,7 +39,7 @@ const int MOTOR_R_IN2 = 10; // PWM pin
 
 // Speed settings (0-255)
 const int DEFAULT_SPEED = 160;
-const int TURN_SPEED = 80;
+const int TURN_SPEED = 210;
 
 void setup()
 {
@@ -150,24 +150,24 @@ void backward()
 
 void left()
 {
-  // Right motors go REVERSE
+  // Right motors go OFF
   analogWrite(MOTOR_R_IN1, 0);
-  analogWrite(MOTOR_R_IN2, DEFAULT_SPEED);
+  analogWrite(MOTOR_R_IN2, TURN_SPEED);
 
   // Left Motors go FORWARD
-  analogWrite(MOTOR_L_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_L_IN1, TURN_SPEED);
   analogWrite(MOTOR_L_IN2, 0);
 }
 
 void right()
 {
   // Right motors go FORWARD
-  analogWrite(MOTOR_R_IN1, DEFAULT_SPEED);
+  analogWrite(MOTOR_R_IN1, TURN_SPEED);
   analogWrite(MOTOR_R_IN2, 0);
 
   // Left Motors go REVERSE
   analogWrite(MOTOR_L_IN1, 0);
-  analogWrite(MOTOR_L_IN2, DEFAULT_SPEED);
+  analogWrite(MOTOR_L_IN2, TURN_SPEED);
 }
 
 void stopMotors()

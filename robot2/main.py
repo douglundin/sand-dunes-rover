@@ -7,7 +7,7 @@ import time
 # Configuring the serial port
 # '/dev/ttyACM0' is the port on the rasp pi 4 when connecting arduino uno r3 usb port
 ser = serial.Serial(
-    port='/dev/ttyACM0',
+    port='/dev/ttyS0',
     baudrate=9600,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
