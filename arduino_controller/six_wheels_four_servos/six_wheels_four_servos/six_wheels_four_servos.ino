@@ -3,17 +3,16 @@
 
 // Define pins we want to use for PWM, 
 
-const int SERVO_CHANNEL_1  = 5;
-const int SERVO_CHANNEL_2 = 4;
+const int SERVO_CHANNEL_1  = 7;
+const int SERVO_CHANNEL_2 = 6;
 
 // motor channel 1
-const int MOTOR_CHANNEL_1_IN1 = 3;
-const int MOTOR_CHANNEL_1_IN2 = 2;
+const int MOTOR_CHANNEL_1_IN1 = 5;
+const int MOTOR_CHANNEL_1_IN2 = 4;
 
 // motor channel 2
-const int MOTOR_CHANNEL_2_IN1 =1;
-const int MOTOR_CHANNEL_2_IN2 = 0;
-
+const int MOTOR_CHANNEL_2_IN1 = 3;
+const int MOTOR_CHANNEL_2_IN2 = 2;
 
 // define servo class for using servos
 Servo servo_channel_1;
@@ -25,10 +24,10 @@ const int TURN_SPEED = 40;
 
 // servo baseline 'straight angle" value
 // note: this will change based on how we attach physical motor housing to servo horn
-const int SERVO_STRAIGHT = 0
+const int SERVO_STRAIGHT = 45
 ;
 // servo turn margin angle
-const int SERVO_MARGIN = 30;
+const int SERVO_MARGIN = 40;
 
 const byte MOTOR_FADE_RATE = 10;
 
@@ -45,15 +44,6 @@ void setup()
   SoftPWMSet(MOTOR_CHANNEL_2_IN1, 0, MOTOR_FADE_RATE);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0, MOTOR_FADE_RATE);
   
-  SoftPWMSet(MOTOR_CHANNEL_3_IN1, 0, MOTOR_FADE_RATE);
-  SoftPWMSet(MOTOR_CHANNEL_3_IN2, 0, MOTOR_FADE_RATE);
-  
-  SoftPWMSet(MOTOR_CHANNEL_4_IN1, 0, MOTOR_FADE_RATE);
-  SoftPWMSet(MOTOR_CHANNEL_4_IN2, 0, MOTOR_FADE_RATE);
-  
-  SoftPWMSet(MOTOR_CHANNEL_5_IN1, 0, MOTOR_FADE_RATE);
-  SoftPWMSet(MOTOR_CHANNEL_5_IN2, 0, MOTOR_FADE_RATE);
-  
   // Set fade time (optional, can be set to 0 for immediate response)
   SoftPWMSetFadeTime(ALL, 0, 0);
   // ===========================
@@ -65,8 +55,8 @@ void setup()
   // ====================================
 
   // ==== Servo Setup ====
-  servo_channel_1.attach(13); // attaches the servo on pin 13 to the servo object
-  servo_channel_2.attach(12); // attaches the servo on pin 13 to the servo object
+  servo_channel_1.attach(SERVO_CHANNEL_1); // attaches the servo on pin 13 to the servo object
+  servo_channel_2.attach(SERVO_CHANNEL_2); // attaches the servo on pin 13 to the servo object
   // initially orient servos to 0 degrees
   servo_channel_1.write(SERVO_STRAIGHT);
   servo_channel_2.write(SERVO_STRAIGHT);
@@ -117,17 +107,6 @@ void executeCommand(char command)
   }
 }
 
-// IN1  IN2  |  Motor State
-// ---------------------
-// 1    0    |  FORWARD (may be reversed, it's based of current direction, will always spin opposite of REVERSE)
-// 0    1    |  REVERSE (may be reversed, it's based of current direction, will always spin opposite of FORWARD)
-// 1    1    |  BRAKE
-// 0    0    |  OFF (Coast)
-
-// 1 = HIGH/ON (3.3V or 5V), 0 = LOW/OFF (0V or ground)
-
-// Motor control functions
-
 void forward()
 {
   // Set servos to straight position (0 degrees)
@@ -136,81 +115,59 @@ void forward()
   
   delay(50); // Short delay to allow servos to reach position
 
-  // Motor channel 1 (Front Left) - Forward
+  // Motor channel 1 - Forward
   SoftPWMSet(MOTOR_CHANNEL_1_IN1, DEFAULT_SPEED);
   SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
   
-  // Motor channel 2 (Front Right) - Forward
+  // Motor channel 2 - Forward
   SoftPWMSet(MOTOR_CHANNEL_2_IN1, DEFAULT_SPEED);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
 }
 
 void backward()
 {
-  // Set servos to straight position (0 degrees)
-  servo_channel_1.write(SERVO_STRAIGHT);
-  servo_channel_2.write(SERVO_STRAIGHT);
-  
-  delay(50); // Short delay to allow servos to reach position
-
-  // Motor channel 1 (Front Left) - Reverse
+  // Motor channel 1 - Reverse
   SoftPWMSet(MOTOR_CHANNEL_1_IN1, 0);
   SoftPWMSet(MOTOR_CHANNEL_1_IN2, DEFAULT_SPEED);
   
-  // Motor channel 2 (Front Right) - Reverse
+  // Motor channel 2 - Reverse
   SoftPWMSet(MOTOR_CHANNEL_2_IN1, 0);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, DEFAULT_SPEED);
-
 }
-void left()
-{
-  // Configure servos for left turn
-  // Servo channel 1 controls servo 1 (front left) and servo 4 (back right)
-  // Servo channel 2 controls servo 2 (front right) and servo 3 (back left)
-  
-  // Turn servos in appropriate directions using the margin constant
-  // For a left turn:
-  // - Front wheels point left
-  // - Back wheels point left
-  servo_channel_1.write(SERVO_STRAIGHT + SERVO_MARGIN); // Front left and back right servos
-  servo_channel_2.write(SERVO_STRAIGHT - SERVO_MARGIN); // Front right and back left servos
-  
-  delay(50); // Short delay to allow servos to reach position
-
-  // Set motors to turn mode (typically at a reduced speed for better control)
-  // Motor channel 1 (Front Left) - Forward
-  SoftPWMSet(MOTOR_CHANNEL_1_IN1, TURN_SPEED);
-  SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
-  
-  // Motor channel 2 (Front Right) - Forward
-  SoftPWMSet(MOTOR_CHANNEL_2_IN1, TURN_SPEED);
-  SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
-  
-}
-
 void right()
 {
-  // Configure servos for right turn
-  // Servo channel 1 controls servo 1 (front left) and servo 4 (back right)
-  // Servo channel 2 controls servo 2 (front right) and servo 3 (back left)
-  
-  // Turn servos in appropriate directions using the margin constant
-  // For a right turn:
-  // - Front wheels point right
-  // - Back wheels point right
-  servo_channel_1.write(SERVO_STRAIGHT - SERVO_MARGIN); // Front left and back right servos
-  servo_channel_2.write(SERVO_STRAIGHT + SERVO_MARGIN); // Front right and back left servos
+
+  servo_channel_1.write(SERVO_STRAIGHT + SERVO_MARGIN); 
+  servo_channel_2.write(SERVO_STRAIGHT - SERVO_MARGIN); 
   
   delay(50); // Short delay to allow servos to reach position
 
   // Set motors to turn mode (typically at a reduced speed for better control)
-  // Motor channel 1 (Front Left) - Forward
-  SoftPWMSet(MOTOR_CHANNEL_1_IN1, TURN_SPEED);
+  // Motor channel 1 - Forward
+  SoftPWMSet(MOTOR_CHANNEL_1_IN1, DEFAULT_SPEED);
   SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
   
-  // Motor channel 2 (Front Right) - Forward
+  // Motor channel 2 - Forward
   SoftPWMSet(MOTOR_CHANNEL_2_IN1, TURN_SPEED);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
+}
+
+void left()
+{
+  servo_channel_1.write(SERVO_STRAIGHT - SERVO_MARGIN);
+  servo_channel_2.write(SERVO_STRAIGHT + SERVO_MARGIN); 
+  
+  delay(50); // Short delay to allow servos to reach position
+
+  // Set motors to turn mode (typically at a reduced speed for better control)
+  // Motor channel 1 - Forward
+  SoftPWMSet(MOTOR_CHANNEL_1_IN1, DEFAULT_SPEED);
+  SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
+  
+  // Motor channel 2 - Forward
+  SoftPWMSet(MOTOR_CHANNEL_2_IN1, TURN_SPEED);
+  SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
+}
 
 void stopMotors()
 {
@@ -219,14 +176,11 @@ void stopMotors()
   servo_channel_2.write(SERVO_STRAIGHT);
   
   // Coast stop all motors (set both pins to 0)
-  // Motor channel 1 (Front Left)
   SoftPWMSet(MOTOR_CHANNEL_1_IN1, 0);
   SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
   
-  // Motor channel 2 (Front Right)
   SoftPWMSet(MOTOR_CHANNEL_2_IN1, 0);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
-  
 }
 
 void brakeMotors()
@@ -236,11 +190,10 @@ void brakeMotors()
   servo_channel_2.write(SERVO_STRAIGHT);
   
   // Active brake all motors (set both pins to 1)
-  // Motor channel 1 (Front Left)
   SoftPWMSet(MOTOR_CHANNEL_1_IN1, 255);
   SoftPWMSet(MOTOR_CHANNEL_1_IN2, 255);
   
-  // Motor channel 2 (Front Right)
+
   SoftPWMSet(MOTOR_CHANNEL_2_IN1, 255);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, 255);
   
