@@ -3,6 +3,7 @@
 
 // Define pins we want to use for PWM, 
 
+
 const int SERVO_CHANNEL_1  = 7;
 const int SERVO_CHANNEL_2 = 6;
 
@@ -19,15 +20,15 @@ Servo servo_channel_1;
 Servo servo_channel_2;
 
 // Speed settings (0-255)
-const int DEFAULT_SPEED = 50;
-const int TURN_SPEED = 40;
+const int DEFAULT_SPEED = 100;
+const int TURN_SPEED = 70;
 
 // servo baseline 'straight angle" value
 // note: this will change based on how we attach physical motor housing to servo horn
 const int SERVO_STRAIGHT = 45
 ;
 // servo turn margin angle
-const int SERVO_MARGIN = 40;
+const int SERVO_MARGIN = 35;
 
 const byte MOTOR_FADE_RATE = 10;
 
@@ -148,7 +149,7 @@ void right()
   SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
   
   // Motor channel 2 - Forward
-  SoftPWMSet(MOTOR_CHANNEL_2_IN1, TURN_SPEED);
+  SoftPWMSet(MOTOR_CHANNEL_2_IN1, DEFAULT_SPEED);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
 }
 
@@ -165,7 +166,7 @@ void left()
   SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
   
   // Motor channel 2 - Forward
-  SoftPWMSet(MOTOR_CHANNEL_2_IN1, TURN_SPEED);
+  SoftPWMSet(MOTOR_CHANNEL_2_IN1, DEFAULT_SPEED);
   SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
 }
 
