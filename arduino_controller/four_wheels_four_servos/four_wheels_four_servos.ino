@@ -3,16 +3,16 @@
 
 // Define pins we want to use for PWM, 
 
-const int SERVO_CHANNEL_1  = 8;
-const int SERVO_CHANNEL_2 = 7;
+const int SERVO_CHANNEL_1  = 7;
+const int SERVO_CHANNEL_2 = 6;
 
 // motor channel 1
-const int MOTOR_CHANNEL_1_IN1 = 6;
-const int MOTOR_CHANNEL_1_IN2 = 5;
+const int MOTOR_CHANNEL_1_IN1 = 5;
+const int MOTOR_CHANNEL_1_IN2 = 4;
 
 // motor channel 2
-const int MOTOR_CHANNEL_2_IN1 = 4;
-const int MOTOR_CHANNEL_2_IN2 = 3;
+const int MOTOR_CHANNEL_2_IN1 = 3;
+const int MOTOR_CHANNEL_2_IN2 = 2;
 
 
 // define servo class for using servos
@@ -174,9 +174,9 @@ void left()
     SoftPWMSet(MOTOR_CHANNEL_1_IN1, TURN_SPEED);
     SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
     
-    // Motor channel 2 (Front Right) - Forward
-    SoftPWMSet(MOTOR_CHANNEL_2_IN1, TURN_SPEED);
-    SoftPWMSet(MOTOR_CHANNEL_2_IN2, 0);
+    // Motor channel 2 (Front Right) - backwards
+    SoftPWMSet(MOTOR_CHANNEL_2_IN1, 0);
+    SoftPWMSet(MOTOR_CHANNEL_2_IN2, TURN_SPEED);
     
   }
 
@@ -196,9 +196,9 @@ void right()
     delay(50); // Short delay to allow servos to reach position
 
     // Set motors to turn mode (typically at a reduced speed for better control)
-    // Motor channel 1 (Front Left) - Forward
-    SoftPWMSet(MOTOR_CHANNEL_1_IN1, TURN_SPEED);
-    SoftPWMSet(MOTOR_CHANNEL_1_IN2, 0);
+    // Motor channel 1 (Front Left) - backwards
+    SoftPWMSet(MOTOR_CHANNEL_1_IN1, 0);
+    SoftPWMSet(MOTOR_CHANNEL_1_IN2, TURN_SPEED);
     
     // Motor channel 2 (Front Right) - Forward
     SoftPWMSet(MOTOR_CHANNEL_2_IN1, TURN_SPEED);

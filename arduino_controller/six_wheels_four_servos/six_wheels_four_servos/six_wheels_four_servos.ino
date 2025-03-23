@@ -25,12 +25,11 @@ const int TURN_SPEED = 70;
 
 // servo baseline 'straight angle" value
 // note: this will change based on how we attach physical motor housing to servo horn
-const int SERVO_STRAIGHT = 45
-;
+const int SERVO_STRAIGHT = 45;
 // servo turn margin angle
 const int SERVO_MARGIN = 35;
 
-const byte MOTOR_FADE_RATE = 10;
+const byte MOTOR_FADE_RATE = 0;
 
 void setup()
 {
@@ -69,11 +68,24 @@ void setup()
 
 void loop()
 {
+  // Blink LED to show the code is running
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(500);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(500);
 
   // Check for incoming UART data
   if (Serial.available() > 0)
   {
     char command = Serial.read(); // Read one character
+    
+    // Debug - print the character code to see exactly what's being received
+    Serial.print("Received character: ");
+    Serial.print(command);
+    Serial.print(" (ASCII value: ");
+    Serial.print((int)command);
+    Serial.println(")");
+    
     executeCommand(command);
     Serial.print("Command executed: ");
     Serial.println(command);
